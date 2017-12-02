@@ -1,0 +1,20 @@
+{
+  "name": "totajjs_mongo_helper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node.js",
+    "total.js",
+    "mongodb",
+    "schema"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "total.js": "^2.9.1"
+  }
+}
