@@ -4,19 +4,15 @@ global.ObjectId = mongodb.ObjectId
 exports.name = 'MongoHelper'
 exports.version = '0.0.1'
 exports.booting = true
-let url = ''
 
 exports.install = (options)=>{
   if (!options || !options.url) {
     throw new Error('need config mongodb url')
   }
-  url = options.url
+  const url = options.url
   F.onParseQuery = function (str) {
     return qs.parse(str)
   }
-}
-
-exports.connect = function connectDB() {
   F.wait('mongodb')
   mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, db) {
     if (error)
