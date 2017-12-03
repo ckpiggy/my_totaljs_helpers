@@ -1,31 +1,7 @@
-const mongodb = require('mongodb'), F = global.F, qs = require('qs')
-global.ObjectId = mongodb.ObjectId
-
-exports.name = 'MongoHelper'
+const qs = require('qs')
+exports.name = 'MongoSchema'
 exports.version = '0.0.1'
-exports.booting = true
 
-exports.install = (options)=>{
-  if (!options || !options.url) {
-    throw new Error('need config mongodb url')
-  }
-  const url = options.url
-
-  F.onParseQuery = function (str) {
-    return qs.parse(str)
-  }
-
-  F.wait('mongodb')
-  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, db) {
-    if (error)
-      throw error
-    F.wait('mongodb')
-    F.emit('database', db)
-    F.MongoDB = db
-  })
-
-
-}
 
 function cursorOption (sort, project, skip, limit) {
   const option = {}
@@ -46,7 +22,7 @@ function cursorOption (sort, project, skip, limit) {
   }
   option.skip = parseInt(skip) || 0
   option.limit = parseInt(limit) || 10
-
+  
   return option
 }
 
@@ -311,3 +287,6 @@ function deleteOne (collection, queryBuilder, optionBuilder, responseDelegate) {
 }
 
 exports.schemaDelete = deleteOne
+
+
+

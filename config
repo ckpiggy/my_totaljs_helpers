@@ -1,1 +1,1 @@
-module#MongoHelper (Object): {url: 'mongodb://test_root:test123@localhost:27017/test'}
+package#MongoHelper (Object): {url: 'mongodb://test.url'}
