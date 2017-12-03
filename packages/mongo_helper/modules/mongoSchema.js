@@ -231,7 +231,7 @@ function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegat
     if (error.hasError('')){
       return responseDelegate(error, undefined, ctrl)
     }
-    
+
     collection.aggregate(pipeline).toArray()
       .then((docs)=>{
         const pagination = {}
@@ -258,7 +258,35 @@ function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegat
 
 exports.schemaAggregate = queryByAggregate
 
+/**
+ * @description the function will use `findOneAndDelete` to delete
+ * @param {object} collection a mongodb collection
+ * @param {function} queryBuilder a function return query object, the parameters are [error, helper]
+ * @param {function} optionBuilder a function return option object, the parameters are [error, helper]
+ * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
+ * */
 
+function deleteOne (collection, queryBuilder, optionBuilder, responseDelegate) {
+  return function delete_schema_delegate(error, helper, cb, ctrl) {
+    const query = queryBuilder(error, helper),
+      option = optionBuilder(error, helper)
+
+    if (error.hasError('')){
+      return responseDelegate(error, undefined, ctrl)
+    }
+
+    collection.findOneAndDelete(query, option)
+      .then((result)=>{
+        return responseDelegate(error, result, ctrl)
+      })
+      .catch((err)=>{
+        error.push('mongodb error', err.toString())
+        return responseDelegate(error, undefined, ctrl)
+      })
+  }
+}
+
+exports.schemaDelete = deleteOne
 
 
 
