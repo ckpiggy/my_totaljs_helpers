@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test_db": "docker run -e MONGODB_USER=\"root\" -e MONGODB_PASS=\"test123\" -e MONGODB_DATABASE=\"test\" -e DB_USER=\"test_root\" -e DB_PWD=\"test123\"  -p 27017:27017 075653738556.dkr.ecr.ap-southeast-1.amazonaws.com/mongo-alpine"
   },
   "keywords": [
     "node.js",
