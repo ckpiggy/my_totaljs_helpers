@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "mongodb": "^2.2.33",
+    "qs": "^6.5.1",
     "total.js": "^2.9.1"
   }
 }
