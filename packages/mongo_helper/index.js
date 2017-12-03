@@ -1,4 +1,4 @@
-const mongodb = require('mongodb')
+const mongodb = require('mongodb'), F = global.F
 global.ObjectId = mongodb.ObjectId
 
 exports.name = 'MongoHelper'
