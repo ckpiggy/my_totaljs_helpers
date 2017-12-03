@@ -6,7 +6,7 @@ exports.version = '0.0.1'
 exports.booting = true
 
 exports.install = (options)=>{
-  if (!options || !url) {
+  if (!options || !options.url) {
     throw new Error('need config mongodb url')
   }
   const url = options.url
