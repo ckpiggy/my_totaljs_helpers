@@ -4,27 +4,27 @@ global.ObjectId = mongodb.ObjectId
 exports.name = 'MongoHelper'
 exports.version = '0.0.1'
 exports.booting = true
+let url = ''
 
 exports.install = (options)=>{
   if (!options || !options.url) {
     throw new Error('need config mongodb url')
   }
-  const url = options.url
-
+  url = options.url
   F.onParseQuery = function (str) {
     return qs.parse(str)
   }
+}
 
+exports.connect = function connectDB() {
   F.wait('mongodb')
   mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, db) {
     if (error)
       throw error
+    F.MongoDB = db
     F.wait('mongodb')
     F.emit('database', db)
-    F.MongoDB = db
   })
-
-
 }
 
 function cursorOption (sort, project, skip, limit) {
@@ -63,7 +63,7 @@ function createCursor (collection, query, option) {
 
 /**
  * @description The helper function will use `insertOne` to create record
- * @param {object} collection a mongodb collection
+ * @param {function} collection return a mongodb collection
  * @param {function} dataBuilder a function return update object, the parameters are [error, model, helper]
  * @param {function} optionBuilder a function return option object, the parameters are [error, model, helper]
  * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
@@ -75,10 +75,11 @@ function create(collection, dataBuilder, optionBuilder, responseDelegate) {
     const m = Object.assign({}, model.$clean()),
       data = dataBuilder(error, Object.assign({}, m), helper),
       option =  optionBuilder(error, m, helper)
+
     if (error.hasError('')){
       return responseDelegate(error, undefined, ctrl)
     }
-    collection.insertOne(data, option)
+    collection().insertOne(data, option)
       .then((result)=>{
         return responseDelegate(error, result, ctrl)
       })
@@ -93,7 +94,7 @@ exports.schemaCreate = create
 
 /**
  * @description The helper function will use `findOneAndUpdate` to save data
- * @param {object} collection a mongodb collection
+ * @param {function}  collection return a mongodb collection
  * @param {function} queryBuilder a function return query object, the parameters are [error, model, helper]
  * @param {function} dataBuilder a function return update object, the parameters are [error, model, helper]
  * @param {function} optionBuilder a function return option object, the parameters are [error, model, helper]
@@ -110,7 +111,7 @@ function save(collection, queryBuilder, dataBuilder, optionBuilder, responseDele
     if (error.hasError('')){
       return responseDelegate(error, undefined, ctrl)
     }
-    collection.findOneAndUpdate(query, data, option)
+    collection().findOneAndUpdate(query, data, option)
       .then((result) => {
         return responseDelegate(error, result, ctrl)
       })
@@ -125,7 +126,7 @@ exports.schemaSave = save
 
 /**
  * @description The helper function will use `findOne` to get one record
- * @param {object} collection a mongodb collection
+ * @param {function}  collection return a mongodb collection
  * @param {function} queryBuilder a function return query object, the parameters are [error, model, helper]
  * @param {function} optionBuilder a function return option object, the parameters are [error, model, helper]
  * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
@@ -135,10 +136,11 @@ function getOne (collection, queryBuilder, optionBuilder, responseDelegate) {
   return function get_schema_delegate(error, model, helper, cb, ctrl) {
     const query = queryBuilder(error, Object.assign({}, model.$clean()), helper),
       option = optionBuilder(error, Object.assign({}, model.$clean()), helper)
+
     if (error.hasError('')){
       return responseDelegate(error, undefined, ctrl)
     }
-    collection.findOne(query, option)
+    collection().findOne(query, option)
       .then((result)=>{
         return responseDelegate(error, result, ctrl)
       })
@@ -163,7 +165,7 @@ exports.schemaGet = getOne
  *  .
  *  other query fields
  * }
- * @param {object} collection a mongodb collection
+ * @param {function}  collection return a mongodb collection
  * @param {function} queryBuilder a function return query object, the parameters are [error, helper]
  * @param {string} baseURL the api baseURL, used to generate page information
  * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
@@ -195,7 +197,7 @@ function queryByFind (collection, queryBuilder, baseURL, responseDelegate) {
     c.skip = (helper.page - 1) * helper.per_page
     c.limit = helper.per_page
     const option = cursorOption(c.sort, c.project, c.skip, c.limit)
-    const cursor = createCursor(collection, query, option)
+    const cursor = createCursor(collection(), query, option)
 
     cursor.toArray()
       .then((docs)=>{
@@ -234,7 +236,7 @@ exports.schemaFind = queryByFind
  *  .
  *  other query fields
  * }
- * @param {object} collection a mongodb collection
+ * @param {function}  collection return a mongodb collection
  * @param {function} pipelineBuilder a function return query object, the parameters are [error, helper]
  * @param {string} baseURL the api baseURL, used to generate page information
  * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
@@ -256,7 +258,7 @@ function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegat
       return responseDelegate(error, undefined, ctrl)
     }
 
-    collection.aggregate(pipeline).toArray()
+    collection().aggregate(pipeline).toArray()
       .then((docs)=>{
         const pagination = {}
         const next_helper = Object.assign({}, helper)
@@ -284,7 +286,7 @@ exports.schemaAggregate = queryByAggregate
 
 /**
  * @description the function will use `findOneAndDelete` to delete
- * @param {object} collection a mongodb collection
+ * @param {function}  collection return a mongodb collection
  * @param {function} queryBuilder a function return query object, the parameters are [error, helper]
  * @param {function} optionBuilder a function return option object, the parameters are [error, helper]
  * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
@@ -299,7 +301,7 @@ function deleteOne (collection, queryBuilder, optionBuilder, responseDelegate) {
       return responseDelegate(error, undefined, ctrl)
     }
 
-    collection.findOneAndDelete(query, option)
+    collection().findOneAndDelete(query, option)
       .then((result)=>{
         return responseDelegate(error, result, ctrl)
       })
