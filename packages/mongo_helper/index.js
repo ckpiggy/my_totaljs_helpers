@@ -5,11 +5,11 @@ exports.name = 'MongoHelper'
 exports.version = '0.0.1'
 exports.booting = true
 
-exports.install = (option)=>{
-  const url = option.url
-  if (!url) {
+exports.install = (options)=>{
+  if (!options || !url) {
     throw new Error('need config mongodb url')
   }
+  const url = options.url
   F.wait('mongodb')
   mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, db) {
     if (error)
