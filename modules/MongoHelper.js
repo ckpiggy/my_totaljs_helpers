@@ -23,17 +23,16 @@ exports.install = (options)=>{
   })
 }
 
+function intExtractor (source) {
+  return Object.keys(source).reduce(function (res, key) {
+    const add = {}
+    add[key] = parseInt(source[key]) || source[key]
+    return Object.assign({}, res, add)
+  }, {})
+}
+
 function cursorOption (sort, project, skip, limit) {
   const option = {}
-
-  function intExtractor (source) {
-    return Object.keys(source).reduce(function (res, key) {
-      const add = {}
-      add[key] = parseInt(source[key]) || source[key]
-      return Object.assign({}, res, add)
-    }, {})
-  }
-
   if (sort){
     option.sort = intExtractor(sort)
   }
@@ -247,6 +246,8 @@ function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegat
     helper.page = parseInt(helper.page) || 1
     const per_page = parseInt(helper.per_page) || 10
     helper.per_page = per_page > 100 ? 100 : per_page
+    helper.sort && (helper.sort = intExtractor(helper.sort))
+    helper.project && (helper.project = intExtractor(helper.project))
 
     const pipeline = pipelineBuilder(error, helper)
 
