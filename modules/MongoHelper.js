@@ -1,4 +1,6 @@
-const mongodb = require('mongodb'), F = global.F, qs = require('qs')
+const mongodb = require('mongodb')
+const F = global.F
+const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:.{"-}]+)/
 global.ObjectId = mongodb.ObjectId
 
 exports.name = 'MongoHelper'
@@ -56,6 +58,15 @@ function createCursor (collection, query, option) {
   return cursor
 }
 
+function parsedMongoError (mongoError) {
+  const errGroup = mongoErrorRegex.exec(mongoError.toString())
+  return {
+    name: 'MongoError',
+    error: errGroup[2],
+    path: errGroup[1]
+  }
+}
+
 /**
  * @description The helper function will use `insertOne` to create record
  * @param {function} collection return a mongodb collection
@@ -79,7 +90,7 @@ function create(collection, dataBuilder, optionBuilder, responseDelegate) {
         return responseDelegate(error, result, ctrl)
       })
       .catch((err)=>{
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
@@ -111,7 +122,7 @@ function save(collection, queryBuilder, dataBuilder, optionBuilder, responseDele
         return responseDelegate(error, result, ctrl)
       })
       .catch((err) => {
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
@@ -140,7 +151,7 @@ function getOne (collection, queryBuilder, optionBuilder, responseDelegate) {
         return responseDelegate(error, result, ctrl)
       })
       .catch((err)=>{
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
@@ -211,7 +222,7 @@ function queryByFind (collection, queryBuilder, baseURL, responseDelegate) {
         return responseDelegate(error, res, ctrl)
       })
       .catch((err)=>{
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
@@ -273,7 +284,7 @@ function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegat
         return responseDelegate(error, res, ctrl)
       })
       .catch((err)=>{
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
@@ -303,7 +314,7 @@ function deleteOne (collection, queryBuilder, optionBuilder, responseDelegate) {
         return responseDelegate(error, result, ctrl)
       })
       .catch((err)=>{
-        error.push('mongodb error', err.toString())
+        error.push(parsedMongoError(err))
         return responseDelegate(error, undefined, ctrl)
       })
   }
