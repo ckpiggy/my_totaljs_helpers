@@ -26,6 +26,41 @@ exports.install = (options)=>{
   })
 }
 
+
+exports.createMongoQuery = function createMongoQuery () {
+
+  const query = {}
+
+  /**
+   * @typedef {Function} QueryValueHandler
+   * @param {String|Array|Object} qsValue - value from object which is parsed from query string
+   * @return  value - the query value
+   * */
+
+  /**
+   * Update mongodb query object
+   * @param {String} key - the query key
+   * @param {Object} qsObject - the object parsed from query string
+   * @param {QueryValueHandler} updateHandler
+   *
+   * */
+  query.updateKey = function (key = '', qsObject = {}, updateHandler = null) {
+    const qsVal = qsObject[key]
+    if (!key || !qsVal) {
+      return query
+    }
+    if (updateHandler) {
+      query[key] = updateHandler(qsVal)
+    } else {
+      query[key] = qsVal
+    }
+    return query
+  }
+
+  return query
+}
+
+
 /**
  * @typedef {String[]} SortProjectArray
  * @description a string array represent key-value pairs separate by ':'
