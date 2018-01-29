@@ -27,9 +27,6 @@ exports.install = (options)=>{
   })
 }
 
-
-
-
 exports.createMongoQuery = function createMongoQuery (qsObject) {
   const query = {}
   /**
@@ -171,27 +168,27 @@ exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
  * help user to generate pagination data
  * @param {Object} qsObject - the object from total.js query
  * @param {String} urlString - the request url http.incommingMessage.url
- * @param {Array} docs - the result documents
  * @param {Number} count - total count
  * @return {PaginationData} pagination
  * */
 
-function composePaginationData (qsObject = {}, urlString = '', docs = [], count = 0) {
-  const pagination = {}
-  const next_helper = Object.assign({}, qsObject)
+function composePaginationData (qsObject = {}, urlString = '', count = 0) {
   const reqUrl = url.parse(urlString)
   const baseUrl = `${reqUrl.protocol}//${reqUrl.host}${reqUrl.pathname}`
+  const pagination = {}
+  pagination.total = count
+  pagination.current_page = qsObject.page
+  pagination.last_page = Math.ceil(count / qsObject.per_page)
+  pagination.from = pagination.current_page * pagination.per_page + 1
+
+  const next_helper = Object.assign({}, qsObject)
   next_helper.page = parseInt(next_helper.page) + 1
-  pagination.next_page_url = docs.length < qsObject.per_page ? '' : baseUrl + '?' + qs.stringify(next_helper)
+  pagination.next_page_url = next_helper.page > pagination.last_page ? '' : baseUrl + '?' + qs.stringify(next_helper)
 
   const prev_helper = Object.assign({}, qsObject)
   prev_helper.page = parseInt(next_helper.page) - 1
   pagination.prev_page_url = qsObject.page === 1 ? '' : baseUrl + '?' + qs.stringify(prev_helper)
 
-  pagination.total = count
-  pagination.current_page = qsObject.page
-  pagination.last_page = Math.ceil(count / qsObject.per_page)
-  pagination.from = pagination.current_page * pagination.per_page + 1
   const estimateTo = (pagination.current_page + 1) * pagination.per_page
   if ( estimateTo > count) {
     pagination.to = count

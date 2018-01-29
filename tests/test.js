@@ -63,7 +63,7 @@ TEST('composePaginationData', () => {
     page: '2',
     per_page: '1'
   }
-  const pagination = helper.composePagination(mockedQsObj, 'http://mydomain/query', [{}], 3)
+  const pagination = helper.composePagination(mockedQsObj, 'http://mydomain/query', 3)
   const next = URL.parse(pagination.next_page_url, true, true)
   OK(next.host === 'mydomain')
   OK(next.protocol === 'http:')
