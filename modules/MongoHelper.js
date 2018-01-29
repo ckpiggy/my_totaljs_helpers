@@ -27,10 +27,10 @@ exports.install = (options)=>{
 }
 
 
-exports.createMongoQuery = function createMongoQuery () {
 
+
+exports.createMongoQuery = function createMongoQuery (qsObject) {
   const query = {}
-
   /**
    * @typedef {Function} QueryValueHandler
    * @param {String|Array|Object} qsValue - value from object which is parsed from query string
@@ -40,11 +40,10 @@ exports.createMongoQuery = function createMongoQuery () {
   /**
    * Update mongodb query object
    * @param {String} key - the query key
-   * @param {Object} qsObject - the object parsed from query string
    * @param {QueryValueHandler} updateHandler
    *
    * */
-  query.updateKey = function (key = '', qsObject = {}, updateHandler = null) {
+  query.updateKey = function (key = '', updateHandler = null) {
     const qsVal = qsObject[key]
     if (!key || !qsVal) {
       return query
@@ -56,7 +55,6 @@ exports.createMongoQuery = function createMongoQuery () {
     }
     return query
   }
-
   return query
 }
 

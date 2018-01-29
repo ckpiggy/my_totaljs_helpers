@@ -75,21 +75,21 @@ TEST('composePaginationData', () => {
 })
 
 TEST('MongoQuery', () => {
-  const query = MODULE('MongoHelper').createMongoQuery()
   const mocked = {
     name: 'ta',
     gender: 'male',
     age: '10'
   }
+  const query = MODULE('MongoHelper').createMongoQuery(mocked)
   query
-    .updateKey('name', mocked, val => {
+    .updateKey('name', val => {
       return {$regex: val}
     })
-    .updateKey('money', mocked, val => {
+    .updateKey('money', val => {
       return {$gt: val}
     })
-    .updateKey('gender', mocked)
-    .updateKey('age', mocked, val => {
+    .updateKey('gender')
+    .updateKey('age', val => {
       return {$gt: parseInt(val)}
     })
   OK(query.name.$regex === 'ta')
