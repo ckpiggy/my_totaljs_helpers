@@ -26,40 +26,82 @@ exports.install = (options)=>{
   })
 }
 
-function intExtractor (source) {
-  return Object.keys(source).reduce(function (res, key) {
-    const add = {}
-    add[key] = parseInt(source[key]) || source[key]
-    return Object.assign({}, res, add)
-  }, {})
+/**
+ * @typedef {String[]} SortProjectArray
+ * @description a string array represent key-value pairs separate by ':'
+ * @example
+ * // a sort object {name: 1, date: -1}
+ * ['name:1', 'date:-1']
+ * */
+
+/**
+ * Extract keys and values from sort, project array
+ * @param {SortProjectArray} arr - a string array
+ * @return {Object} sort/project - the sort or project object
+ */
+
+function extractSortOrProject (arr = []) {
+  const data = {}
+  arr.forEach((val) => {
+    const pair = val.split(':')
+    if (pair.length === 2) {
+      data[pair[0]] = parseInt(pair[1])
+    }
+  })
+  return data
 }
 
-function cursorOption (sort, project, skip, limit) {
-  const option = {}
-  if (sort){
-    option.sort = intExtractor(sort)
-  }
-  if (project){
-    option.project = intExtractor(project)
-  }
-  option.skip = parseInt(skip) || 0
-  option.limit = parseInt(limit) || 10
+/**
+ * @typedef {Object} QueryOption
+ * @property {Object} sort - results sort directions ex : {keyA: 1, keyB: -1}
+ * @property {Object} project - only return certain keys ex: {keyA: 1, keyB: 1}
+ * @property {Number} skip - skip amount of data
+ * @property {Number} limit - total count limit of the query = skip + expect number of results
+ * */
 
+/**
+ * Parse query string object and extract query and option
+ * @param {SortProjectArray} sort - sort array from query object
+ * @param {SortProjectArray} project - project array from query object
+ * @param {Number} page - current page
+ * @param {Number} per_page - documents per page
+ * @return {QueryOption} option - query option
+ * */
+
+exports.cursorOption = function cursorOption (sort = null, project = null, page = 1, per_page = 10) {
+  const option = {}
+  option.sort = extractSortOrProject(sort)
+  option.project = extractSortOrProject(project)
+  option.skip = (page - 1) * per_page
+  option.limit = option.skip + per_page
   return option
 }
 
-function createCursor (collection, query, option) {
-  let cursor = collection.find(query)
+/**
+ * Create mongodb Collection~Cursor
+ * @param {Object} collection - Mongodb Collection
+ * @param {Object} query - mongodb query object
+ * @param {QueryOption} option - query option
+ * @return {Object} cursor - mongodb collection cursor
+ * */
 
+
+exports.createFindCursor = function createFindCursor (collection, query, option) {
+  let cursor = collection.find(query)
   option.sort && (cursor = cursor.sort(option.sort))
   option.project && (cursor = cursor.project(option.project))
-  option.skip && (cursor = cursor.skip(option.skip))
   option.limit && (cursor = cursor.limit(option.limit))
-
+  option.skip && (cursor = cursor.skip(option.skip))
   return cursor
 }
 
-function parsedMongoError (mongoError = {}) {
+/**
+ * A helper to extract mongo error code and error message and generate totaljs error object
+ * @param {Object} mongoError - the mogodb driver generated error
+ * @return {Object} totaljsError - the parsed totaljs error
+ * */
+
+exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
   const errGroup = mongoErrorRegex.exec(mongoError.toString())
   if (!errGroup) {
     return null
@@ -71,24 +113,40 @@ function parsedMongoError (mongoError = {}) {
   }
 }
 
-exports.parsedMongoError = parsedMongoError
+/**
+ * @typedef {Object} PaginationData
+ * @property {String} next_page_url - the url to query next page
+ * @property {String} prev_page_url - the url to query prev page
+ * @property {Number} total - total count of results
+ * @property {Number} current_page - current page number
+ * @property {Number} last_page - the last page number
+ * @property {Number} from - current page data is from ...
+ * @property {Number} to - current page data is to ...
+ *
+ * */
 
+/**
+ * help user to generate pagination data
+ * @param {Object} qsObject - the object from total.js query
+ * @param {String} url - the request url (not include query string)
+ * @param {Array} docs - the result documents
+ * @param {Number} count - total count
+ * @return {PaginationData} pagination
+ * */
 
-function composePaginationData (helper, baseURL, docs, count) {
+function composePaginationData (qsObject = {}, url = '', docs = [], count = 0) {
   const pagination = {}
-  const next_helper = Object.assign({}, helper)
+  const next_helper = Object.assign({}, qsObject)
   next_helper.page += 1
-  pagination.next_page_url = docs.length < helper.per_page ? '' :
-    baseURL + ctrl.url + '?' + qs.stringify(next_helper)
+  pagination.next_page_url = docs.length < qsObject.per_page ? '' : url + '?' + qs.stringify(next_helper)
 
-  const prev_helper = Object.assign({}, helper)
+  const prev_helper = Object.assign({}, qsObject)
   prev_helper.page -= 1
-  pagination.prev_page_url = helper.page === 1 ? '' :
-    baseURL + ctrl.url + '?' + qs.stringify(prev_helper)
+  pagination.prev_page_url = qsObject.page === 1 ? '' : url + '?' + qs.stringify(prev_helper)
 
   pagination.total = count
-  pagination.current_page = helper.page
-  pagination.last_page = Math.ceil(count / helper.per_page)
+  pagination.current_page = qsObject.page
+  pagination.last_page = Math.ceil(count / qsObject.per_page)
   pagination.from = pagination.current_page * pagination.per_page + 1
   const estimateTo = (pagination.current_page + 1) * pagination.per_page
   if ( estimateTo > count) {
@@ -99,143 +157,4 @@ function composePaginationData (helper, baseURL, docs, count) {
   return pagination
 }
 
-/**
- * @description The function will use `find` to get one record, please noted the controller must pass helper with structure like:
- * {
- *  sort: {
- *    keyA: 1,
- *    keyB: -1,
- *    keyC: 1
- *  },
- *  page: 1,
- *  per_page: 10,
- *  project: {
- *    keyA: 1,
- *    keyB: 1,
- *    keyC: 1
- *  }
- *  .
- *  .
- *  .
- *  other query fields
- * }
- * @param {function}  collection return a mongodb collection
- * @param {function} queryBuilder a function return query object, the parameters are [error, helper]
- * @param {string} baseURL the api baseURL, used to generate page information
- * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
- * */
-
-function queryByFind (collection, queryBuilder, baseURL, responseDelegate) {
-  return function find_schema_delegate(error, helper, callback, ctrl) {
-    if (!helper){
-      error.push('query error', 'no query helper')
-      return responseDelegate(error, undefined, ctrl)
-    }
-    helper.page = parseInt(helper.page) || 1
-    const per_page = parseInt(helper.per_page) || 10
-    helper.per_page = per_page > 100 ? 100 : per_page
-
-    const q = Object.assign({}, helper)
-    delete q.sort
-    delete q.page
-    delete q.per_page
-    delete q.project
-    const query = queryBuilder(error, q)
-
-    if (error.hasError('')){return responseDelegate(error, undefined, ctrl)}
-
-    const c = {}
-    c.sort = helper.sort
-    c.project = helper.project
-    c.skip = (helper.page - 1) * helper.per_page
-    c.limit = helper.per_page
-    const option = cursorOption(c.sort, c.project, c.skip, c.limit)
-    const cursor = createCursor(collection(), query, option)
-
-    Promise.all([cursor.toArray(), cursor.count()])
-      .then((results)=>{
-        const docs = results[0]
-        const count = results[1]
-        const pagination = composePaginationData(helper, baseURL, docs, count)
-        const res = {
-          links: {pagination},
-          data: docs
-        }
-        return responseDelegate(error, res, ctrl)
-      })
-      .catch((err)=>{
-        error.push(parsedMongoError(err))
-        return responseDelegate(error, undefined, ctrl)
-      })
-  }
-}
-
-exports.schemaFind = queryByFind
-
-/**
- * @description the function will use `aggregate` to query, the controller must pass helper with structure like:
- * {
- *  sort: {
- *    keyA: 1,
- *    keyB: -1,
- *    keyC: 1
- *  },
- *  page: 1,
- *  per_page: 10,
- *  project: {
- *    keyA: 1,
- *    keyB: 1,
- *    keyC: 1
- *  }
- *  .
- *  .
- *  .
- *  other query fields
- * }
- * @param {function}  collection return a mongodb collection
- * @param {function} pipelineBuilder a function return query object, the parameters are [error, helper]
- * @param {string} baseURL the api baseURL, used to generate page information
- * @param {function} responseDelegate a function send response, the parameters are [error, result, controller]
- * */
-
-function queryByAggregate (collection, pipelineBuilder, baseURL, responseDelegate) {
-  return function aggregate_schema_delegate(error, helper, cb, ctrl) {
-    if (!helper){
-      error.push('query error', 'no query helper')
-      return responseDelegate(error, undefined, ctrl)
-    }
-    helper.page = parseInt(helper.page) || 1
-    const per_page = parseInt(helper.per_page) || 10
-    helper.per_page = per_page > 100 ? 100 : per_page
-    helper.sort && (helper.sort = intExtractor(helper.sort))
-    helper.project && (helper.project = intExtractor(helper.project))
-
-    const pipeline = pipelineBuilder(error, helper)
-
-    if (error.hasError('')){
-      return responseDelegate(error, undefined, ctrl)
-    }
-
-    const cursor = collection().aggregate(pipeline)
-
-    Promise.all([cursor.toArray(), cursor.count()])
-      .then((results)=>{
-        const docs = results[0]
-        const count = results[1]
-        const pagination = composePaginationData(helper, baseURL, docs, count)
-        const res = {
-          links: {pagination},
-          data: docs
-        }
-        return responseDelegate(error, res, ctrl)
-      })
-      .catch((err)=>{
-        error.push(parsedMongoError(err))
-        return responseDelegate(error, undefined, ctrl)
-      })
-  }
-}
-
-exports.schemaAggregate = queryByAggregate
-
-
+exports.composePagination = composePaginationData
