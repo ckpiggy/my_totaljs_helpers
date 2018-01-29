@@ -1,7 +1,7 @@
 const mongodb = require('mongodb')
 const qs = require('querystring')
 const F = global.F
-const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:.{"-}]+)/
+const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:,.{"-}]+)/
 global.ObjectId = mongodb.ObjectId
 
 exports.name = 'MongoHelper'
@@ -41,6 +41,12 @@ exports.install = (options)=>{
  */
 
 function extractSortOrProject (arr = []) {
+  if (!arr.length) {
+    return null
+  }
+  if (typeof arr === 'string') {
+    arr = [arr]
+  }
   const data = {}
   arr.forEach((val) => {
     const pair = val.split(':')
@@ -53,8 +59,8 @@ function extractSortOrProject (arr = []) {
 
 /**
  * @typedef {Object} QueryOption
- * @property {Object} sort - results sort directions ex : {keyA: 1, keyB: -1}
- * @property {Object} project - only return certain keys ex: {keyA: 1, keyB: 1}
+ * @property {Object} [sort] - results sort directions ex : {keyA: 1, keyB: -1}
+ * @property {Object} [project] - only return certain keys ex: {keyA: 1, keyB: 1}
  * @property {Number} skip - skip amount of data
  * @property {Number} limit - total count limit of the query = skip + expect number of results
  * */
@@ -63,17 +69,19 @@ function extractSortOrProject (arr = []) {
  * Parse query string object and extract query and option
  * @param {SortProjectArray} sort - sort array from query object
  * @param {SortProjectArray} project - project array from query object
- * @param {Number} page - current page
- * @param {Number} per_page - documents per page
+ * @param {String} page - current page
+ * @param {String} per_page - documents per page
  * @return {QueryOption} option - query option
  * */
 
-exports.cursorOption = function cursorOption (sort = null, project = null, page = 1, per_page = 10) {
+exports.cursorOption = function cursorOption (sort = null, project = null, page = '1', per_page = '10') {
   const option = {}
+  const curPage = parseInt(page)
+  const perPage = parseInt(per_page)
   option.sort = extractSortOrProject(sort)
   option.project = extractSortOrProject(project)
-  option.skip = (page - 1) * per_page
-  option.limit = option.skip + per_page
+  option.skip = (curPage - 1) * perPage
+  option.limit = option.skip + perPage
   return option
 }
 
@@ -137,11 +145,11 @@ exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
 function composePaginationData (qsObject = {}, url = '', docs = [], count = 0) {
   const pagination = {}
   const next_helper = Object.assign({}, qsObject)
-  next_helper.page += 1
+  next_helper.page = parseInt(next_helper.page) + 1
   pagination.next_page_url = docs.length < qsObject.per_page ? '' : url + '?' + qs.stringify(next_helper)
 
   const prev_helper = Object.assign({}, qsObject)
-  prev_helper.page -= 1
+  prev_helper.page = parseInt(next_helper.page) - 1
   pagination.prev_page_url = qsObject.page === 1 ? '' : url + '?' + qs.stringify(prev_helper)
 
   pagination.total = count

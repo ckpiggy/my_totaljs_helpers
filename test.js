@@ -1,1 +1,1 @@
-require('total.js').http('test', {}, '')
+require('total.js').http('test debug', {}, '')
