@@ -1,5 +1,6 @@
 const mongodb = require('mongodb')
 const qs = require('querystring')
+const url = require('url')
 const F = global.F
 const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:,.{"-}]+)/
 global.ObjectId = mongodb.ObjectId
@@ -169,21 +170,23 @@ exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
 /**
  * help user to generate pagination data
  * @param {Object} qsObject - the object from total.js query
- * @param {String} url - the request url (not include query string)
+ * @param {String} urlString - the request url http.incommingMessage.url
  * @param {Array} docs - the result documents
  * @param {Number} count - total count
  * @return {PaginationData} pagination
  * */
 
-function composePaginationData (qsObject = {}, url = '', docs = [], count = 0) {
+function composePaginationData (qsObject = {}, urlString = '', docs = [], count = 0) {
   const pagination = {}
   const next_helper = Object.assign({}, qsObject)
+  const reqUrl = url.parse(urlString)
+  const baseUrl = `${reqUrl.protocol}//${reqUrl.host}${reqUrl.pathname}`
   next_helper.page = parseInt(next_helper.page) + 1
-  pagination.next_page_url = docs.length < qsObject.per_page ? '' : url + '?' + qs.stringify(next_helper)
+  pagination.next_page_url = docs.length < qsObject.per_page ? '' : baseUrl + '?' + qs.stringify(next_helper)
 
   const prev_helper = Object.assign({}, qsObject)
   prev_helper.page = parseInt(next_helper.page) - 1
-  pagination.prev_page_url = qsObject.page === 1 ? '' : url + '?' + qs.stringify(prev_helper)
+  pagination.prev_page_url = qsObject.page === 1 ? '' : baseUrl + '?' + qs.stringify(prev_helper)
 
   pagination.total = count
   pagination.current_page = qsObject.page
