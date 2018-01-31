@@ -1,10 +1,11 @@
-const qs = require('querystring')
 const URL = require('url')
 
 
 TEST('get module', ()=>{
   const helper = MODULE('MongoHelper')
   OK(helper, 'got module')
+  OK(F.MongoDB, 'got db instance')
+  OK(typeof F.MongoDB.collection === 'function' , 'got collection')
 })
 
 TEST('test cursorOption', () => {

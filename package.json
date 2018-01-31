@@ -16,7 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "mongodb": "^2.2.33",
-    "total.js": "^2.9.1"
+    "mongodb": "^2.2.34",
+    "total.js": "^2.9.2"
   }
 }

@@ -1,6 +1,6 @@
 const mongodb = require('mongodb')
 const qs = require('querystring')
-const url = require('url')
+const Url = require('url')
 const F = global.F
 const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:,.{"-}]+)/
 global.ObjectId = mongodb.ObjectId
@@ -18,12 +18,14 @@ exports.install = (options)=>{
     return qs.parse(str)
   }
   F.wait('mongodb')
-  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, db) {
+  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200}, function (error, client) {
     if (error)
       throw error
-    F.MongoDB = db
+    const urlObj = Url.parse(url)
+    const dbName = urlObj.pathname.replace('/', '')
+    F.MongoDB = client.db(dbName)
     F.wait('mongodb')
-    F.emit('database', db)
+    F.emit('database', F.MongoDB)
   })
 }
 
@@ -173,7 +175,7 @@ exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
  * */
 
 function composePaginationData (qsObject = {}, urlString = '', count = 0) {
-  const reqUrl = url.parse(urlString)
+  const reqUrl = Url.parse(urlString)
   const baseUrl = `${reqUrl.protocol}//${reqUrl.host}${reqUrl.pathname}`
   const pagination = {}
   pagination.total = count
