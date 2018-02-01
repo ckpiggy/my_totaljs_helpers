@@ -179,23 +179,31 @@ function composePaginationData (qsObject = {}, req, count = 0) {
   if (!req || !req.headers || !req.connection) {
     throw Error('need request to compose data')
   }
+
+  const cur_page = parseInt(qsObject.page)
+  const per_page = parseInt(qsObject.per_page)
+  if (isNaN(cur_page) || isNaN(per_page)) {
+    throw Error('invalid qsObject')
+  }
+
   const protocol = req.connection.encrypted || req.headers['x-forwarded-proto'] ? 'https:' : 'http:'
   const baseUrl = `${protocol}//${req.headers.host}${req.url}`
   const pagination = {}
   pagination.total = count
-  pagination.current_page = qsObject.page
-  pagination.last_page = Math.ceil(count / qsObject.per_page)
-  pagination.from = pagination.current_page * pagination.per_page + 1
+  pagination.current_page = cur_page
+  pagination.per_page = per_page
+  pagination.last_page = Math.ceil(count / per_page)
+  pagination.from = (cur_page - 1) * per_page + 1
 
   const next_helper = Object.assign({}, qsObject)
-  next_helper.page = parseInt(next_helper.page) + 1
+  next_helper.page = cur_page + 1
   pagination.next_page_url = next_helper.page > pagination.last_page ? '' : baseUrl + '?' + qs.stringify(next_helper)
 
   const prev_helper = Object.assign({}, qsObject)
-  prev_helper.page = parseInt(next_helper.page) - 1
-  pagination.prev_page_url = qsObject.page === 1 ? '' : baseUrl + '?' + qs.stringify(prev_helper)
+  prev_helper.page = cur_page - 1
+  pagination.prev_page_url = prev_helper.page < 1 ? '' : baseUrl + '?' + qs.stringify(prev_helper)
 
-  const estimateTo = (pagination.current_page + 1) * pagination.per_page
+  const estimateTo = (pagination.current_page + 1) * pagination.per_page - 1
   if ( estimateTo > count) {
     pagination.to = count
   } else {

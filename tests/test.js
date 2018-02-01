@@ -75,6 +75,13 @@ TEST('composePaginationData', () => {
   const next = URL.parse(pagination.next_page_url, true, true)
   OK(next.host === 'mydomain')
   OK(next.protocol === 'http:')
+  OK(pagination.current_page === 2, 'cur page')
+  OK(pagination.per_page === 1, 'per page')
+  OK(pagination.total === 3, 'total')
+  OK(pagination.last_page === 3, 'last page')
+  OK(pagination.from === 2, 'from')
+  OK(pagination.to === 2, 'to')
+
   const nextQueryOption = helper.cursorOption(next.query.sort, next.query.project, next.query.page, next.query.per_page)
   OK(nextQueryOption.sort.name === 1)
   OK(nextQueryOption.project.name === 1 && nextQueryOption.project.date === 1)
