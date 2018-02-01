@@ -117,3 +117,14 @@ TEST('MongoQuery', () => {
   OK(query.gender === 'male')
   OK(query.age.$gt === 10)
 })
+
+
+TEST('MongoArrayOperator', () => {
+  const mocked = {
+    images: ['push:keyA', 'push:keyB', 'push:keyC', 'pull:keyD']
+  }
+  const push = MODULE('MongoHelper').arrayExtract('push', mocked.images)
+  const pull = MODULE('MongoHelper').arrayExtract('pull', mocked.images)
+  OK(push.$each && push.$each.length === 3)
+  OK(pull === 'keyD')
+})

@@ -213,3 +213,30 @@ function composePaginationData (qsObject = {}, req, count = 0) {
 }
 
 exports.composePagination = composePaginationData
+
+/**
+ * A helper to parse 'action:content' string array to mongodb update array
+ * @param {String} action mongodb array operator without '$'
+ * @param {String[]} arr the array to be process
+ * @param {Function} valueExtract a handler to extract the string value, the parameter is (stringValue)
+ * @return {Object|String|Number} return an object with $each operator or a value
+ * */
+
+exports.arrayExtract = function (action = '', arr = [], valueExtract) {
+  if (!action || !arr || !arr.length) {
+    return
+  }
+  let target = arr.filter(item => {
+    return item.startsWith(action)
+  }).map(item => {
+    return item.replace(`${action}:`, '')
+  })
+  if (valueExtract) {
+    target = target.map(valueExtract)
+  }
+  if (target.length < 2) {
+    return target[0]
+  } else {
+    return {$each: target}
+  }
+}
