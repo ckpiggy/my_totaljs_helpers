@@ -83,14 +83,14 @@ TEST('MongoQuery', () => {
   }
   const query = MODULE('MongoHelper').createMongoQuery(mocked)
   query
-    .updateKey('name', val => {
+    .queryKey('name', val => {
       return {$regex: val}
     })
-    .updateKey('money', val => {
+    .queryKey('money', val => {
       return {$gt: val}
     })
-    .updateKey('gender')
-    .updateKey('age', val => {
+    .queryKey('gender')
+    .queryKey('age', val => {
       return {$gt: parseInt(val)}
     })
   OK(query.name.$regex === 'ta')

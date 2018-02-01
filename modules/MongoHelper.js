@@ -43,7 +43,7 @@ exports.createMongoQuery = function createMongoQuery (qsObject) {
    * @param {QueryValueHandler} updateHandler
    *
    * */
-  query.updateKey = function (key = '', updateHandler = null) {
+  query.queryKey = function (key = '', updateHandler = null) {
     const qsVal = qsObject[key]
     if (!key || !qsVal) {
       return query
