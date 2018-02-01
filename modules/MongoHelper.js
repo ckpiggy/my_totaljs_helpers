@@ -3,7 +3,6 @@ const qs = require('querystring')
 const Url = require('url')
 const F = global.F
 const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:,.{"-}]+)/
-const {IncomingMessage} = require('http')
 global.ObjectId = mongodb.ObjectId
 
 exports.name = 'MongoHelper'
