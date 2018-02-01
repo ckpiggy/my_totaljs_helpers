@@ -3,6 +3,7 @@ const qs = require('querystring')
 const Url = require('url')
 const F = global.F
 const mongoErrorRegex = /MongoError: ([\w]+) ([\w\s:,.{"-}]+)/
+const {IncomingMessage} = require('http')
 global.ObjectId = mongodb.ObjectId
 
 exports.name = 'MongoHelper'
@@ -174,9 +175,12 @@ exports.parsedMongoError = function parsedMongoError (mongoError = {}) {
  * @return {PaginationData} pagination
  * */
 
-function composePaginationData (qsObject = {}, urlString = '', count = 0) {
-  const reqUrl = Url.parse(urlString)
-  const baseUrl = `${reqUrl.protocol}//${reqUrl.host}${reqUrl.pathname}`
+function composePaginationData (qsObject = {}, req, count = 0) {
+  if (!req || !req.headers || !req.connection) {
+    throw Error('need request to compose data')
+  }
+  const protocol = req.connection.encrypted || req.headers['x-forwarded-proto'] ? 'https:' : 'http:'
+  const baseUrl = `${protocol}//${req.headers.host}${req.url}`
   const pagination = {}
   pagination.total = count
   pagination.current_page = qsObject.page
