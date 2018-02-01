@@ -74,7 +74,7 @@ exports.createMongoQuery = function createMongoQuery (qsObject) {
  */
 
 function extractSortOrProject (arr = []) {
-  if (!arr.length) {
+  if (!arr || !arr.length) {
     return null
   }
   if (typeof arr === 'string') {
