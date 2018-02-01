@@ -187,7 +187,8 @@ function composePaginationData (qsObject = {}, req, count = 0) {
   }
 
   const protocol = req.connection.encrypted || req.headers['x-forwarded-proto'] ? 'https:' : 'http:'
-  const baseUrl = `${protocol}//${req.headers.host}${req.url}`
+  const pathName = Url.parse(req.url).pathname
+  const baseUrl = `${protocol}//${req.headers.host}${pathName}`
   const pagination = {}
   pagination.total = count
   pagination.current_page = cur_page

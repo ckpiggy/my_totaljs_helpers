@@ -1,5 +1,5 @@
 const URL = require('url')
-
+const querystring = require('querystring')
 
 TEST('get module', ()=>{
   const helper = MODULE('MongoHelper')
@@ -69,8 +69,11 @@ TEST('composePaginationData', () => {
       host: 'mydomain'
     },
     connection: {},
-    url: '/query'
+    url: `/query?${querystring.stringify(mockedQsObj)}`
   }
+  const nextQs = querystring.stringify(Object.assign({}, mockedQsObj, {page: '3'}))
+  const prevQs = querystring.stringify(Object.assign({}, mockedQsObj, {page: '1'}))
+  const url = 'http://mydomain/query'
   const pagination = helper.composePagination(mockedQsObj, mockedReq, 3)
   const next = URL.parse(pagination.next_page_url, true, true)
   OK(next.host === 'mydomain')
@@ -81,6 +84,8 @@ TEST('composePaginationData', () => {
   OK(pagination.last_page === 3, 'last page')
   OK(pagination.from === 2, 'from')
   OK(pagination.to === 2, 'to')
+  OK(pagination.next_page_url === `${url}?${nextQs}`, 'next url')
+  OK(pagination.prev_page_url === `${url}?${prevQs}`, 'prev url')
 
   const nextQueryOption = helper.cursorOption(next.query.sort, next.query.project, next.query.page, next.query.per_page)
   OK(nextQueryOption.sort.name === 1)
