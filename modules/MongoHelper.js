@@ -43,18 +43,25 @@ exports.createMongoQuery = function createMongoQuery (qsObject) {
    * @param {QueryValueHandler} updateHandler
    *
    * */
-  query.queryKey = function (key = '', updateHandler = null) {
-    const qsVal = qsObject[key]
-    if (!key || !qsVal) {
-      return query
+  Object.defineProperties(query, {
+    queryKey: {
+      enumerable: false,
+      writable:false,
+      value: function (key = '', updateHandler = null) {
+        const qsVal = qsObject[key]
+        if (!key || !qsVal) {
+          return query
+        }
+        if (updateHandler) {
+          query[key] = updateHandler(qsVal)
+        } else {
+          query[key] = qsVal
+        }
+        return query
+      }
     }
-    if (updateHandler) {
-      query[key] = updateHandler(qsVal)
-    } else {
-      query[key] = qsVal
-    }
-    return query
-  }
+  })
+
   return query
 }
 
@@ -193,7 +200,7 @@ function composePaginationData (qsObject = {}, req, count = 0) {
   pagination.current_page = cur_page
   pagination.per_page = per_page
   pagination.last_page = Math.ceil(count / per_page)
-  pagination.from = (cur_page - 1) * per_page + 1
+  pagination.from = count ? (cur_page - 1) * per_page + 1 : 0
 
   const next_helper = Object.assign({}, qsObject)
   next_helper.page = cur_page + 1
