@@ -222,7 +222,7 @@ exports.composePagination = composePaginationData
  * @return {Object|String|Number} return an object with $each operator or a value
  * */
 
-exports.arrayExtract = function (action = '', arr = [], valueExtract) {
+exports.arrayExtract = function (action = '', arr = [], valueExtract = null) {
   if (!action || !arr || !arr.length) {
     return
   }
@@ -231,6 +231,11 @@ exports.arrayExtract = function (action = '', arr = [], valueExtract) {
   }).map(item => {
     return item.replace(`${action}:`, '')
   })
+
+  if (target.length === 0) {
+    return null
+  }
+
   if (valueExtract) {
     target = target.map(valueExtract)
   }
