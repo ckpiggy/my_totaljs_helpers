@@ -14,7 +14,7 @@ exports.install = (options)=>{
   const url = options.url
   const poolSize = options.poolSize
   F.wait('mongodb')
-  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200, poolSize: (poolSize || 100)}, function (error, client) {
+  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200, poolSize: (poolSize || 100), useNewUrlParser: true}, function (error, client) {
     if (error)
       throw error
     const urlObj = Url.parse(url)
@@ -22,5 +22,6 @@ exports.install = (options)=>{
     F.MongoDB = client.db(dbName)
     F.wait('mongodb')
     F.emit('database', F.MongoDB)
+    console.log('connected to database ' + dbName)
   })
 }
