@@ -13,6 +13,6 @@ Add `F.schemaResponse` method to help you to unify schema response. (no matter i
 1. MongoHelper
 Help you to connect to database.
 
-##How to install:
+## How to install:
 
 Please check [total.js documents](https://docs.totaljs.com/latest/en.html#pages~Modules)
