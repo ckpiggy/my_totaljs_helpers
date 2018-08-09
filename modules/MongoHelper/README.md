@@ -16,6 +16,8 @@ please install before use.
 
 ## configuration ##
 
+add `F.wait('mongodb')` to wait for db connection
+
 in total.js config file add
 
 `module#MongoHelper (Object): {url:'mongodb://db_account:db_pwd@your_db_url/the_db', poolSize: 100}`

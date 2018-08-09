@@ -12,9 +12,15 @@ exports.install = (options)=>{
     throw new Error('need config mongodb url')
   }
   const url = options.url
+  delete options.url
+  const opt = Object.assign({
+    w: 'majority', 
+    j: true, wtimeout: 200, 
+    poolSize: 100,
+    useNewUrlParser: true
+  }, options)
   const poolSize = options.poolSize
-  F.wait('mongodb')
-  mongodb.MongoClient.connect(url, {w: 'majority', j: true, wtimeout: 200, poolSize: (poolSize || 100), useNewUrlParser: true}, function (error, client) {
+  mongodb.MongoClient.connect(url, opt, function (error, client) {
     if (error)
       throw error
     const urlObj = Url.parse(url)
