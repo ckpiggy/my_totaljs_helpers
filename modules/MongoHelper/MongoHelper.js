@@ -26,8 +26,12 @@ exports.install = (options)=>{
     const urlObj = Url.parse(url)
     const dbName = urlObj.pathname.replace('/', '')
     F.MongoDB = client.db(dbName)
-    F.wait('mongodb')
     F.emit('database', F.MongoDB)
     console.log('connected to database ' + dbName)
+
+    setTimeout(() => {
+      F.wait('mongodb')
+      console.log('booting up continue ...')
+    }, 1000)
   })
 }
