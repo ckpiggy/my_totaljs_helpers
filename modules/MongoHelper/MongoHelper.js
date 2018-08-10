@@ -28,10 +28,6 @@ exports.install = (options)=>{
     F.MongoDB = client.db(dbName)
     F.emit('database', F.MongoDB)
     console.log('connected to database ' + dbName)
-
-    setTimeout(() => {
-      F.wait('mongodb')
-      console.log('booting up continue ...')
-    }, 1000)
+    F.wait('mongodb')
   })
 }
