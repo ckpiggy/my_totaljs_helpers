@@ -1,7 +1,7 @@
 const mongodb = require('mongodb')
 const Url = require('url')
 const F = global.F
-global.ObjectId = mongodb.ObjectId
+global.ObjectId = mongodb.ObjectID
 
 exports.name = 'MongoHelper'
 exports.version = '0.0.2'
