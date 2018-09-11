@@ -11,6 +11,7 @@ exports.install = () => {
     try {
       return jwt.sign(value, CONFIG('secret-key'))
     } catch (e) {
+      console.error(e)
       return null
     }
   }
@@ -19,6 +20,7 @@ exports.install = () => {
     try {
       return jwt.verify(value, CONFIG('secret-key'))
     } catch (e) {
+      console.log(e)
       return null
     }
   }
