@@ -6,7 +6,10 @@ exports.name = 'JSONWebToken'
 exports.version = '0.0.1'
 exports.booting = true
 
-exports.install = () => {
+exports.install = (options) => {
+  if (!options || !options.secretKey) {
+    throw new Error('Please configure JWT module')
+  }
   F.encrypt = function(value) {
     try {
       return jwt.sign(value, CONFIG('secret-key'))

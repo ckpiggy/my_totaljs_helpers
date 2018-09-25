@@ -15,7 +15,8 @@ exports.install = (options)=>{
   delete options.url
   const opt = Object.assign({
     w: 'majority', 
-    j: true, wtimeout: 200, 
+    j: true, 
+    wtimeout: 200, 
     poolSize: 100,
     useNewUrlParser: true
   }, options)
